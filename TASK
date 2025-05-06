@@ -1,0 +1,50 @@
+import pytest
+import os
+import tempfile
+import sys
+
+def test_read_file():
+    with tempfile.NamedTemporaryFile(mode='w', delete=False) as tmp:
+        tmp.write("Test content")
+        tmp_path = tmp.name
+    
+    try:
+        assert read_file(tmp_path) == "Test content"
+    finally:
+        os.unlink(tmp_path)
+
+def test_write_file():
+    with tempfile.NamedTemporaryFile(mode='w', delete=False) as tmp:
+        tmp_path = tmp.name
+    
+    try:
+        write_file(tmp_path, "New content")
+        with open(tmp_path, 'r') as f:
+            assert f.read() == "New content"
+    finally:
+        os.unlink(tmp_path)
+
+def test_list_files_in_directory():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        open(os.path.join(tmpdir, "file1.txt"), 'w').close()
+        open(os.path.join(tmpdir, "file2.py"), 'w').close()
+        
+        files = list_files_in_directory(tmpdir)
+        assert set(files) == {"file1.txt", "file2.py"}
+
+def test_generate_numbers():
+    gen = generate_numbers(3)
+    assert list(gen) == [0, 1, 2]
+    assert list(generate_numbers(0)) == []
+
+def test_use_function_from_module():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        module_path = os.path.join(tmpdir, "test_module.py")
+        with open(module_path, 'w') as f:
+            f.write("def multiply(a, b):\n    return a * b\n")
+        
+        sys.path.insert(0, tmpdir)
+        try:
+            assert use_function_from_module("test_module", "multiply", 3, 4) == 12
+        finally:
+            sys.path.remove(tmpdir)
